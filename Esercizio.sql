@@ -48,13 +48,12 @@ CREATE TABLE Fatture(
 	data_fattura DATE DEFAULT CURRENT_DATE,
 	numero_fornitore INTEGER REFERENCES Fornitori(numero_fornitore)
 );
-*/
 
 INSERT INTO Clienti(nome, cognome, regione_residenza, data_nascita) 
 VALUES
 ('Giuliano','Torrisi','Sicilia','1999-02-27'),
 ('Mario','Rossi','Campania','2002-10-05'),
-('Valerio','Giacchini','Emilia','1982-05-19');
+('Valerio','Giacchini','Emilia','1982-05-19'),
 ('Francesco','Schettino','Emilia','1980-05-19');
 
 INSERT INTO Prodotti(descrizione,in_produzione,in_commercio,data_attivazione,data_disattivazione)
@@ -71,6 +70,7 @@ VALUES
 ('Enkkei','Molise'),
 ('BBS','Sicilia');
 
+
 INSERT INTO Fatture(tipologia,importo,iva,id_cliente,data_fattura,numero_fornitore)
 VALUES
 ('A',40000,20,1,'2024-01-01',2),
@@ -80,3 +80,68 @@ VALUES
 ('A',50000,22,3,'2024-01-01',3),
 ('B',60,0,4,'2023-01-01',1),
 ('A',10000,22,2,'2025-01-01',3),
+('B',100000,20,4,'2023-01-01',2);
+*/
+
+--ES.1
+SELECT *
+FROM public.clienti
+WHERE nome LIKE 'Mario'
+ORDER BY numero_cliente ASC;
+
+--ES.2
+SELECT *
+FROM public.clienti
+WHERE EXTRACT(YEAR FROM data_nascita) = '1982'
+ORDER BY numero_cliente ASC;
+
+--ES.3
+SELECT *
+FROM public.fatture
+WHERE iva = 20;
+
+--ES.4
+SELECT *
+FROM public.prodotti
+WHERE EXTRACT(YEAR FROM data_attivazione) = '2017' AND (in_produzione OR in_commercio);
+
+--ES.5
+SELECT *
+FROM public.fatture
+INNER JOIN clienti ON fatture.id_cliente = clienti.numero_cliente
+WHERE importo < 1000;
+
+--ES.6
+SELECT numero_fattura,importo,iva,data_fattura,denominazione
+FROM public.fatture
+INNER JOIN fornitori ON fatture.numero_fornitore = fornitori.numero_fornitore;
+
+--ES.7
+SELECT EXTRACT(YEAR FROM data_fattura) as data_fattura, COUNT(*) as n_fatture
+FROM public.fatture
+WHERE iva = 20
+GROUP BY EXTRACT(YEAR FROM data_fattura);
+
+--ES.8
+SELECT EXTRACT(YEAR FROM data_fattura) as data_fattura, SUM(importo) as n_fatture
+FROM public.fatture
+GROUP BY EXTRACT(YEAR FROM data_fattura);
+
+--ES.9
+SELECT EXTRACT(YEAR FROM data_fattura) as data_fattura
+FROM public.fatture
+GROUP BY EXTRACT(YEAR FROM data_fattura)
+HAVING COUNT(tipologia LIKE 'A')>2;
+
+--ES.10
+SELECT regione_residenza, SUM(importo) as tot
+FROM public.fatture
+INNER JOIN clienti ON fatture.id_cliente = clienti.numero_cliente
+GROUP BY regione_residenza;
+
+--ES.11
+SELECT COUNT(DISTINCT id_cliente)
+FROM public.fatture
+INNER JOIN clienti ON fatture.id_cliente = clienti.numero_cliente
+WHERE EXTRACT(YEAR FROM clienti.data_nascita) = '1980' AND importo>50
+GROUP BY id_cliente;
